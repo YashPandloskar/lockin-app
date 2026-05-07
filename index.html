@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lock In">
+<meta name="theme-color" content="#0a0a0a">
+<title>Lock In — Daily Tracker</title>
+<link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --surface3: #222222;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0ede8;
+    --text2: #888880;
+    --text3: #555550;
+    --accent: #c8f57a;
+    --accent-dim: rgba(200,245,122,0.12);
+    --accent-dim2: rgba(200,245,122,0.06);
+    --danger: #ff5e5e;
+    --amber: #f5c842;
+    --teal: #5eead4;
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-lg: 18px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Subtle grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 48px 48px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    position: relative;
+    z-index: 1;
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 28px;
+  }
+
+  .wordmark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    color: var(--text);
+  }
+
+  .wordmark span { color: var(--accent); font-style: italic; }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .streak-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,200,66,0.1);
+    border: 1px solid rgba(245,200,66,0.2);
+    border-radius: 999px;
+    padding: 5px 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--amber);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .streak-icon { font-size: 14px; }
+
+  /* ── DATE NAV ── */
+  .date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+
+  .date-center { flex: 1; text-align: center; }
+
+  .date-main {
+    font-family: 'DM Serif Display', serif;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    color: var(--text);
+    line-height: 1.1;
+  }
+
+  .date-sub {
+    font-size: 12px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 3px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .nav-arrow {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text2);
+    font-size: 16px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+
+  .nav-arrow:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+  /* ── PROGRESS ── */
+  .progress-section { margin-bottom: 28px; }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 10px;
+  }
+
+  .progress-label { font-size: 12px; color: var(--text3); font-family: 'DM Mono', monospace; letter-spacing: 0.06em; text-transform: uppercase; }
+
+  .progress-pct {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--surface3);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 4px;
+    background: var(--accent);
+    border-radius: 999px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px rgba(200,245,122,0.4);
+  }
+
+  /* ── STAT CARDS ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+
+  .stat-n {
+    font-family: 'DM Mono', monospace;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 5px;
+  }
+
+  .stat-n.green { color: var(--accent); }
+  .stat-n.amber { color: var(--amber); }
+
+  .stat-lbl {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  /* ── SECTIONS ── */
+  .section { margin-bottom: 24px; }
+
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+
+  .section-name {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+  }
+
+  .section-add-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 11px;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+    transition: all 0.15s;
+  }
+
+  .section-add-btn:hover { background: var(--surface2); color: var(--text2); }
+
+  .task-list { display: flex; flex-direction: column; gap: 6px; }
+
+  /* ── TASK ITEM ── */
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 13px 14px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .task-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: transparent;
+    transition: background 0.2s;
+    border-radius: 2px 0 0 2px;
+  }
+
+  .task-item.done::before { background: var(--accent); }
+
+  .task-item.done {
+    background: var(--accent-dim2);
+    border-color: rgba(200,245,122,0.08);
+  }
+
+  .task-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border2);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: transparent;
+  }
+
+  .task-item.done .task-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .task-check svg { display: none; }
+  .task-item.done .task-check svg { display: block; }
+
+  .task-body { flex: 1; min-width: 0; }
+
+  .task-text {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.4;
+    cursor: text;
+    word-break: break-word;
+  }
+
+  .task-item.done .task-text {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+
+  .task-time {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: 'DM Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .task-text-input {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    width: 100%;
+  }
+
+  .task-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 15px;
+    padding: 4px;
+    border-radius: 6px;
+    opacity: 0;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .task-item:hover .task-del { opacity: 1; }
+  .task-del:hover { color: var(--danger); background: rgba(255,94,94,0.1); }
+
+  /* ── ADD TASK ROW ── */
+  .add-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 6px;
+  }
+
+  .add-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 9px 12px;
+    font-size: 14px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .add-input:focus { border-color: rgba(200,245,122,0.4); }
+  .add-input::placeholder { color: var(--text3); }
+
+  .time-mini {
+    width: 76px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 9px 10px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--text2);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .time-mini:focus { border-color: rgba(200,245,122,0.4); }
+  .time-mini::placeholder { color: var(--text3); }
+
+  .add-confirm {
+    background: var(--accent);
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    font-size: 13px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    color: #0a0a0a;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .add-confirm:hover { background: #d4f888; }
+
+  /* ── SUBTASKS ── */
+  .task-item {
+    flex-wrap: wrap;
+  }
+
+  .task-expand {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s;
+    font-family: 'DM Mono', monospace;
+    flex-shrink: 0;
+  }
+
+  .task-expand:hover { background: var(--surface2); color: var(--text2); }
+
+  .subtask-count {
+    background: var(--surface3);
+    border-radius: 999px;
+    padding: 1px 7px;
+    font-size: 10px;
+    color: var(--text2);
+    font-family: 'DM Mono', monospace;
+  }
+
+  .subtask-count.has-done {
+    background: var(--accent-dim);
+    color: var(--accent);
+  }
+
+  .chev {
+    transition: transform 0.2s;
+    display: inline-block;
+    font-size: 9px;
+  }
+
+  .chev.open { transform: rotate(90deg); }
+
+  .subtasks-wrap {
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .subtask-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s;
+  }
+
+  .subtask-row:hover { background: var(--surface2); }
+
+  .subtask-check {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    border: 1.5px solid var(--border2);
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    background: transparent;
+  }
+
+  .subtask-row.done .subtask-check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .subtask-check svg { display: none; }
+  .subtask-row.done .subtask-check svg { display: block; }
+
+  .subtask-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    cursor: text;
+    word-break: break-word;
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.4;
+  }
+
+  .subtask-row.done .subtask-text {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+
+  .subtask-text-input {
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    width: 100%;
+  }
+
+  .subtask-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text3);
+    font-size: 13px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.15s;
+    flex-shrink: 0;
+    line-height: 1;
+  }
+
+  .subtask-row:hover .subtask-del { opacity: 1; }
+  .subtask-del:hover { color: var(--danger); background: rgba(255,94,94,0.1); }
+
+  .subtask-add-row {
+    display: flex;
+    gap: 6px;
+    padding: 4px 8px;
+  }
+
+  .subtask-add-input {
+    flex: 1;
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 7px 10px;
+    font-size: 13px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .subtask-add-input:focus { border-color: rgba(200,245,122,0.4); }
+  .subtask-add-input::placeholder { color: var(--text3); }
+
+  .subtask-add-btn {
+    background: var(--surface3);
+    border: 1px solid var(--border2);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.15s;
+  }
+
+  .subtask-add-btn:hover { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
+
+  /* ── MOTIVATION ── */
+  .motivation-card {
+    background: var(--accent-dim);
+    border: 1px solid rgba(200,245,122,0.15);
+    border-radius: var(--radius-lg);
+    padding: 18px 20px;
+    margin-top: 32px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .mot-icon { font-size: 20px; margin-top: 1px; flex-shrink: 0; }
+
+  .mot-text {
+    font-size: 14px;
+    color: rgba(200,245,122,0.85);
+    line-height: 1.65;
+    font-style: italic;
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+  }
+
+  /* ── TODAY CHIP ── */
+  .today-chip {
+    background: none;
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    color: var(--text3);
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    transition: all 0.15s;
+  }
+
+  .today-chip:hover { background: var(--surface2); color: var(--text2); }
+
+  /* ── SECTION MANAGE ── */
+  .manage-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .manage-input {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 13px;
+    font-family: 'Outfit', sans-serif;
+    color: var(--text);
+    outline: none;
+  }
+
+  .manage-input:focus { border-color: rgba(200,245,122,0.4); }
+  .manage-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 12px;
+    color: var(--text2);
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    transition: all 0.15s;
+  }
+  .manage-btn:hover { background: var(--surface3); color: var(--text); }
+  .manage-btn.accent { background: var(--accent); color: #0a0a0a; border-color: var(--accent); }
+  .manage-btn.accent:hover { background: #d4f888; }
+
+  /* ── FAB ── */
+  .fab {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--accent);
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #0a0a0a;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 4px 24px rgba(200,245,122,0.25);
+    transition: all 0.2s;
+    z-index: 100;
+  }
+
+  .fab:hover { background: #d4f888; transform: translateY(-2px); box-shadow: 0 6px 28px rgba(200,245,122,0.35); }
+
+  /* ── MODAL ── */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+
+  .modal-backdrop.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 24px 20px 32px;
+    width: 100%;
+    max-width: 680px;
+    transform: translateY(20px);
+    transition: transform 0.25s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .modal-backdrop.open .modal { transform: translateY(0); }
+
+  .modal-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  .modal-close {
+    float: right;
+    background: none;
+    border: none;
+    color: var(--text3);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    margin-top: -2px;
+  }
+
+  @media (max-width: 500px) {
+    .date-main { font-size: 22px; }
+    .stat-n { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="wordmark">lock <span>in.</span></div>
+    <div class="topbar-right">
+      <div class="streak-badge">
+        <span class="streak-icon">🔥</span>
+        <span id="streak-text">0 days</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="date-nav">
+    <button class="nav-arrow" onclick="changeDay(-1)" aria-label="Previous day">←</button>
+    <div class="date-center">
+      <div class="date-main" id="date-main"></div>
+      <div class="date-sub" id="date-sub"></div>
+    </div>
+    <button class="nav-arrow" onclick="changeDay(1)" aria-label="Next day">→</button>
+  </div>
+
+  <div style="display:flex; justify-content:center; margin-bottom:20px;">
+    <button class="today-chip" onclick="goToday()">↩ Today</button>
+  </div>
+
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-label">Daily progress</span>
+      <span class="progress-pct" id="pct-label">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-n green" id="stat-done">0</div>
+      <div class="stat-lbl">Done</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n" id="stat-left">0</div>
+      <div class="stat-lbl">Left</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-n amber" id="stat-streak">0</div>
+      <div class="stat-lbl">Streak</div>
+    </div>
+  </div>
+
+  <div id="sections-root"></div>
+
+  <div class="motivation-card" id="mot-card">
+    <span class="mot-icon">⚡</span>
+    <span class="mot-text" id="mot-text"></span>
+  </div>
+
+</div>
+
+<!-- Add Section FAB -->
+<button class="fab" onclick="openModal()" aria-label="Add section">＋ Add section</button>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modal-backdrop" onclick="closeModalIfBackdrop(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title">New section</div>
+    <div class="manage-row">
+      <input class="manage-input" id="section-name-input" placeholder="Section name (e.g. Evening)" />
+      <button class="manage-btn accent" onclick="confirmAddSection()">Add</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ──
+const DEFAULT = [
+  { name: "Morning", tasks: [
+    { text: "Wake up & morning routine", time: "8:00am" },
+    { text: "Daily run (30–45 min)", time: "8:15am" },
+    { text: "Shower & breakfast", time: "9:00am" },
+  ]},
+  { name: "Study block", tasks: [
+    { text: "Deep work — MSc study / project", time: "9:30am" },
+    { text: "Review lecture notes / readings", time: "11:00am" },
+  ]},
+  { name: "Job search", tasks: [
+    { text: "Apply to 2–3 Data Analyst / Data Scientist roles", time: "1:00pm" },
+    { text: "LinkedIn: connect or post update", time: "2:30pm" },
+  ]},
+  { name: "Afternoon", tasks: [
+    { text: "Upskilling (SQL / Tableau / Python)", time: "3:00pm" },
+    { text: "Review & refine CV or portfolio", time: "4:30pm" },
+  ]},
+  { name: "Evening", tasks: [
+    { text: "Plan tomorrow's tasks", time: "8:00pm" },
+    { text: "No screens after 10pm", time: "10:00pm" },
+  ]},
+];
+
+const QUOTES = [
+  "Every application is a step closer. Keep going.",
+  "Consistency beats perfection. Show up tomorrow.",
+  "You're building habits that will outlast this summer.",
+  "Data Analyst & Data Scientist roles are waiting for someone like you.",
+  "One run, one application, one study block at a time.",
+  "Your future self will thank you for locking in today.",
+  "Progress compounds. What you do today matters.",
+  "Every expert was once a student who kept showing up.",
+  "September is closer than you think. Make May count.",
+  "Discipline is just doing it when you don't feel like it.",
+];
+
+const DB_KEY = 'lockin_v2';
+let db = JSON.parse(localStorage.getItem(DB_KEY) || '{}');
+let currentDate = todayStr();
+let addingTo = null;
+let expandedTask = null; // "si-ti" string of task with subtasks open
+
+function todayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function save() {
+  localStorage.setItem(DB_KEY, JSON.stringify(db));
+}
+
+function getDayData(d) {
+  if (!db[d]) {
+    db[d] = {
+      sections: DEFAULT.map(s => ({
+        name: s.name,
+        tasks: s.tasks.map(t => ({ ...t, done: false, id: uid(), subtasks: [] }))
+      }))
+    };
+  }
+  // Back-fill subtasks for older saved data
+  db[d].sections.forEach(sec => {
+    sec.tasks.forEach(t => {
+      if (!Array.isArray(t.subtasks)) t.subtasks = [];
+    });
+  });
+  return db[d];
+}
+
+function uid() { return Math.random().toString(36).slice(2,9); }
+
+// ── STREAK ──
+function computeStreak() {
+  let streak = 0;
+  let d = new Date(); d.setHours(0,0,0,0);
+  while (true) {
+    const k = d.toISOString().split('T')[0];
+    const day = db[k];
+    if (!day) break;
+    const all = day.sections.flatMap(s => s.tasks);
+    if (all.length === 0 || !all.every(t => t.done)) break;
+    streak++;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+// ── DATE DISPLAY ──
+function formatDateMain(str) {
+  const d = new Date(str + 'T12:00:00');
+  const today = todayStr();
+  const yesterday = new Date(); yesterday.setDate(yesterday.getDate()-1);
+  const yStr = yesterday.toISOString().split('T')[0];
+  if (str === today) return 'Today';
+  if (str === yStr) return 'Yesterday';
+  return d.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function formatDateSub(str) {
+  const d = new Date(str + 'T12:00:00');
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+// ── RENDER ──
+function render() {
+  const data = getDayData(currentDate);
+  const all = data.sections.flatMap(s => s.tasks);
+  const done = all.filter(t => t.done).length;
+  const total = all.length;
+  const pct = total === 0 ? 0 : Math.round((done/total)*100);
+  const streak = computeStreak();
+
+  document.getElementById('date-main').textContent = formatDateMain(currentDate);
+  document.getElementById('date-sub').textContent = formatDateSub(currentDate);
+  document.getElementById('pct-label').textContent = pct + '%';
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('stat-done').textContent = done;
+  document.getElementById('stat-left').textContent = total - done;
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('streak-text').textContent = streak + (streak === 1 ? ' day' : ' days');
+
+  const qi = Math.floor(new Date(currentDate).getTime() / 86400000) % QUOTES.length;
+  document.getElementById('mot-text').textContent = pct === 100
+    ? '🎉 All done! Incredible discipline. Rest up and come back tomorrow stronger.'
+    : QUOTES[qi];
+
+  const root = document.getElementById('sections-root');
+  root.innerHTML = '';
+
+  data.sections.forEach((sec, si) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'section';
+
+    const head = document.createElement('div');
+    head.className = 'section-head';
+    head.innerHTML = `
+      <span class="section-name">${sec.name}</span>
+      <button class="section-add-btn" onclick="showAdd(${si})">＋ task</button>
+    `;
+    wrap.appendChild(head);
+
+    const list = document.createElement('div');
+    list.className = 'task-list';
+
+    sec.tasks.forEach((task, ti) => {
+      const item = document.createElement('div');
+      item.className = 'task-item' + (task.done ? ' done' : '');
+
+      const check = document.createElement('div');
+      check.className = 'task-check';
+      check.innerHTML = `<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a0a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+      check.onclick = () => toggle(si, ti);
+
+      const body = document.createElement('div');
+      body.className = 'task-body';
+
+      const txt = document.createElement('div');
+      txt.className = 'task-text';
+      txt.textContent = task.text;
+      txt.onclick = () => editText(si, ti, txt);
+
+      const timEl = document.createElement('div');
+      timEl.className = 'task-time';
+      timEl.textContent = task.time || '';
+
+      body.appendChild(txt);
+      if (task.time) body.appendChild(timEl);
+
+      // Expand/collapse button for subtasks
+      const taskKey = si + '-' + ti;
+      const isOpen = expandedTask === taskKey;
+      const subs = task.subtasks || [];
+      const subDone = subs.filter(s => s.done).length;
+      const subTotal = subs.length;
+
+      const expandBtn = document.createElement('button');
+      expandBtn.className = 'task-expand';
+      expandBtn.setAttribute('aria-label', 'Show subtasks');
+      const countHtml = subTotal > 0
+        ? `<span class="subtask-count${subDone > 0 ? ' has-done' : ''}">${subDone}/${subTotal}</span>`
+        : '';
+      expandBtn.innerHTML = `<span class="chev${isOpen ? ' open' : ''}">▶</span>${countHtml}`;
+      expandBtn.onclick = (e) => { e.stopPropagation(); toggleExpand(si, ti); };
+
+      const del = document.createElement('button');
+      del.className = 'task-del';
+      del.setAttribute('aria-label', 'Delete task');
+      del.innerHTML = '✕';
+      del.onclick = () => deleteTask(si, ti);
+
+      item.appendChild(check);
+      item.appendChild(body);
+      item.appendChild(expandBtn);
+      item.appendChild(del);
+
+      // Subtasks panel (when expanded)
+      if (isOpen) {
+        const wrapSub = document.createElement('div');
+        wrapSub.className = 'subtasks-wrap';
+
+        subs.forEach((sub, sti) => {
+          const row = document.createElement('div');
+          row.className = 'subtask-row' + (sub.done ? ' done' : '');
+
+          const sCheck = document.createElement('div');
+          sCheck.className = 'subtask-check';
+          sCheck.innerHTML = `<svg width="8" height="6" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="#0a0a0a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+          sCheck.onclick = () => toggleSubtask(si, ti, sti);
+
+          const sTxt = document.createElement('div');
+          sTxt.className = 'subtask-text';
+          sTxt.textContent = sub.text;
+          sTxt.onclick = () => editSubtaskText(si, ti, sti, sTxt);
+
+          const sDel = document.createElement('button');
+          sDel.className = 'subtask-del';
+          sDel.setAttribute('aria-label', 'Delete subtask');
+          sDel.innerHTML = '✕';
+          sDel.onclick = () => deleteSubtask(si, ti, sti);
+
+          row.appendChild(sCheck);
+          row.appendChild(sTxt);
+          row.appendChild(sDel);
+          wrapSub.appendChild(row);
+        });
+
+        // Add-subtask input row (always visible when expanded)
+        const addRow = document.createElement('div');
+        addRow.className = 'subtask-add-row';
+        addRow.innerHTML = `
+          <input class="subtask-add-input" id="sub-inp-${si}-${ti}" placeholder="Add label or sub-item (e.g. Google, Spotify…)" />
+          <button class="subtask-add-btn" onclick="addSubtask(${si}, ${ti})">Add</button>
+        `;
+        wrapSub.appendChild(addRow);
+        item.appendChild(wrapSub);
+
+        // Wire up Enter key on the subtask input
+        setTimeout(() => {
+          const inp = document.getElementById(`sub-inp-${si}-${ti}`);
+          if (inp) {
+            inp.onkeydown = e => { if (e.key === 'Enter') addSubtask(si, ti); };
+          }
+        }, 30);
+      }
+
+      list.appendChild(item);
+    });
+
+    if (addingTo === si) {
+      const row = document.createElement('div');
+      row.className = 'add-row';
+      row.innerHTML = `
+        <input class="add-input" id="add-task-inp" placeholder="Task name…" />
+        <input class="time-mini" id="add-time-inp" placeholder="8:00am" />
+        <button class="add-confirm" onclick="confirmAdd(${si})">Add</button>
+      `;
+      list.appendChild(row);
+      setTimeout(() => { const el = document.getElementById('add-task-inp'); if(el) el.focus(); }, 30);
+    }
+
+    wrap.appendChild(list);
+    root.appendChild(wrap);
+  });
+}
+
+// ── ACTIONS ──
+function toggle(si, ti) {
+  const d = getDayData(currentDate);
+  d.sections[si].tasks[ti].done = !d.sections[si].tasks[ti].done;
+  save(); render();
+}
+
+function deleteTask(si, ti) {
+  const d = getDayData(currentDate);
+  d.sections[si].tasks.splice(ti, 1);
+  expandedTask = null;
+  save(); render();
+}
+
+function editText(si, ti, el) {
+  const d = getDayData(currentDate);
+  const task = d.sections[si].tasks[ti];
+  const inp = document.createElement('input');
+  inp.className = 'task-text-input';
+  inp.value = task.text;
+  el.replaceWith(inp);
+  inp.focus();
+  const commit = () => { task.text = inp.value.trim() || task.text; save(); render(); };
+  inp.onblur = commit;
+  inp.onkeydown = e => { if(e.key === 'Enter') inp.blur(); };
+}
+
+// ── SUBTASKS ──
+function toggleExpand(si, ti) {
+  const key = si + '-' + ti;
+  expandedTask = expandedTask === key ? null : key;
+  render();
+}
+
+function addSubtask(si, ti) {
+  const inp = document.getElementById(`sub-inp-${si}-${ti}`);
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text) return;
+  const d = getDayData(currentDate);
+  const task = d.sections[si].tasks[ti];
+  if (!Array.isArray(task.subtasks)) task.subtasks = [];
+  task.subtasks.push({ id: uid(), text, done: false });
+  save();
+  render();
+  // Refocus the input so the user can quickly add multiple
+  setTimeout(() => {
+    const again = document.getElementById(`sub-inp-${si}-${ti}`);
+    if (again) again.focus();
+  }, 30);
+}
+
+function toggleSubtask(si, ti, sti) {
+  const d = getDayData(currentDate);
+  const sub = d.sections[si].tasks[ti].subtasks[sti];
+  sub.done = !sub.done;
+  save(); render();
+}
+
+function deleteSubtask(si, ti, sti) {
+  const d = getDayData(currentDate);
+  d.sections[si].tasks[ti].subtasks.splice(sti, 1);
+  save(); render();
+}
+
+function editSubtaskText(si, ti, sti, el) {
+  const d = getDayData(currentDate);
+  const sub = d.sections[si].tasks[ti].subtasks[sti];
+  const inp = document.createElement('input');
+  inp.className = 'subtask-text-input';
+  inp.value = sub.text;
+  el.replaceWith(inp);
+  inp.focus();
+  const commit = () => { sub.text = inp.value.trim() || sub.text; save(); render(); };
+  inp.onblur = commit;
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); };
+}
+
+function showAdd(si) { addingTo = si; render(); }
+
+function confirmAdd(si) {
+  const inp = document.getElementById('add-task-inp');
+  const timeInp = document.getElementById('add-time-inp');
+  const text = inp ? inp.value.trim() : '';
+  if (!text) { addingTo = null; render(); return; }
+  const d = getDayData(currentDate);
+  d.sections[si].tasks.push({ text, time: timeInp ? timeInp.value.trim() : '', done: false, id: uid(), subtasks: [] });
+  addingTo = null; save(); render();
+}
+
+function changeDay(delta) {
+  addingTo = null;
+  expandedTask = null;
+  const d = new Date(currentDate + 'T12:00:00');
+  d.setDate(d.getDate() + delta);
+  currentDate = d.toISOString().split('T')[0];
+  render();
+}
+
+function goToday() { addingTo = null; expandedTask = null; currentDate = todayStr(); render(); }
+
+// ── MODAL ──
+function openModal() {
+  document.getElementById('modal-backdrop').classList.add('open');
+  setTimeout(() => document.getElementById('section-name-input').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modal-backdrop').classList.remove('open');
+  document.getElementById('section-name-input').value = '';
+}
+
+function closeModalIfBackdrop(e) {
+  if (e.target === document.getElementById('modal-backdrop')) closeModal();
+}
+
+function confirmAddSection() {
+  const name = document.getElementById('section-name-input').value.trim();
+  if (!name) return;
+  const d = getDayData(currentDate);
+  d.sections.push({ name, tasks: [] });
+  save(); closeModal(); render();
+}
+
+document.getElementById('section-name-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmAddSection();
+});
+
+// ── SERVICE WORKER ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+render();
+</script>
+</body>
+</html>
